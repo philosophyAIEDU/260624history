@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>👑 단종 이야기 — 비운의 왕을 만나다</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: '맑은 고딕', 'Malgun Gothic', sans-serif;
+    background-color: #f5e6c8;
+    color: #3a2a10;
+    min-height: 100vh;
+  }
+
+  /* ── 공통 ── */
+  .screen { display: none; min-height: 100vh; padding: 20px; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  h1 { font-size: clamp(22px, 5vw, 32px); color: #8b2500; text-align: center; line-height: 1.4; }
+  h2 { font-size: clamp(18px, 4vw, 24px); color: #8b2500; text-align: center; }
+
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 16px 20px;
+    font-size: 18px;
+    font-family: inherit;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.1s, opacity 0.1s;
+  }
+  .btn:active { transform: scale(0.97); opacity: 0.9; }
+
+  .btn-primary {
+    background: #8b2500;
+    color: #fff5e0;
+  }
+  .btn-secondary {
+    background: #c9a227;
+    color: #3a2a10;
+  }
+  .btn-outline {
+    background: transparent;
+    color: #8b2500;
+    border: 2px solid #8b2500;
+  }
+
+  /* ── 화면 1: 시작 ── */
+  #screen-home {
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    text-align: center;
+  }
+
+  .home-title-wrap {
+    background: rgba(139, 37, 0, 0.07);
+    border: 2px solid #c9a227;
+    border-radius: 16px;
+    padding: 28px 24px;
+    max-width: 480px;
+    width: 100%;
+  }
+
+  .home-subtitle {
+    font-size: 16px;
+    color: #6b4c1a;
+    margin-top: 12px;
+  }
+
+  .home-deco {
+    font-size: 56px;
+    margin-bottom: 8px;
+  }
+
+  .home-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    max-width: 360px;
+  }
+
+  .home-desc {
+    font-size: 15px;
+    color: #6b4c1a;
+    border-top: 1px solid #c9a227;
+    padding-top: 16px;
+    max-width: 360px;
+  }
+
+  /* ── 화면 2: 타임라인 ── */
+  #screen-timeline {
+    max-width: 700px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .timeline-header {
+    padding: 20px 0 10px;
+    text-align: center;
+  }
+
+  .timeline-back {
+    text-align: left;
+    margin-bottom: 8px;
+  }
+
+  .timeline-wrap {
+    position: relative;
+    padding: 20px 0 20px 44px;
+  }
+
+  /* 세로선 */
+  .timeline-wrap::before {
+    content: '';
+    position: absolute;
+    left: 16px;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(to bottom, #c9a227, #8b2500, #c9a227);
+    border-radius: 2px;
+  }
+
+  .tl-item {
+    position: relative;
+    margin-bottom: 16px;
+  }
+
+  /* 동그라미 점 */
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -34px;
+    top: 18px;
+    width: 16px;
+    height: 16px;
+    background: #c9a227;
+    border: 3px solid #8b2500;
+    border-radius: 50%;
+    z-index: 1;
+  }
+
+  .tl-card {
+    background: #fffaf0;
+    border: 1.5px solid #c9a227;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.08);
+  }
+
+  .tl-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .tl-header:hover { background: #fdf3dc; }
+
+  .tl-year {
+    font-size: 14px;
+    font-weight: bold;
+    color: #8b6914;
+    white-space: nowrap;
+    min-width: 46px;
+  }
+
+  .tl-emoji { font-size: 22px; }
+
+  .tl-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #3a2a10;
+    flex: 1;
+    line-height: 1.3;
+  }
+
+  .tl-arrow {
+    font-size: 14px;
+    color: #8b6914;
+    transition: transform 0.25s;
+  }
+
+  .tl-item.open .tl-arrow { transform: rotate(180deg); }
+
+  .tl-detail {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease;
+  }
+
+  .tl-item.open .tl-detail { max-height: 500px; }
+
+  .tl-detail-inner {
+    padding: 0 16px 16px;
+    font-size: 15px;
+    line-height: 1.75;
+    color: #4a3520;
+    border-top: 1px dashed #e0c88a;
+    padding-top: 12px;
+    background: #fdf8ee;
+  }
+
+  .timeline-footer {
+    padding: 20px 0 30px;
+    text-align: center;
+  }
+
+  /* ── 화면 3: 퀴즈 ── */
+  #screen-quiz {
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .quiz-header {
+    padding: 20px 0 16px;
+    text-align: center;
+  }
+
+  .quiz-progress-wrap {
+    margin: 8px auto 0;
+    max-width: 400px;
+  }
+
+  .quiz-progress-bar-bg {
+    background: #e0c88a;
+    border-radius: 10px;
+    height: 10px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+
+  .quiz-progress-bar {
+    height: 100%;
+    background: linear-gradient(to right, #c9a227, #8b2500);
+    border-radius: 10px;
+    transition: width 0.4s ease;
+  }
+
+  .quiz-progress-text {
+    font-size: 14px;
+    color: #8b6914;
+    text-align: right;
+    margin-top: 4px;
+  }
+
+  .quiz-card {
+    background: #fffaf0;
+    border: 2px solid #c9a227;
+    border-radius: 16px;
+    padding: 24px 20px;
+    margin: 16px 0;
+    box-shadow: 3px 3px 10px rgba(0,0,0,0.08);
+  }
+
+  .quiz-q-num {
+    font-size: 13px;
+    font-weight: bold;
+    color: #8b2500;
+    margin-bottom: 8px;
+  }
+
+  .quiz-q-text {
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1.5;
+    color: #3a2a10;
+    margin-bottom: 20px;
+  }
+
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .quiz-opt-btn {
+    width: 100%;
+    text-align: left;
+    padding: 14px 16px;
+    font-size: 16px;
+    font-family: inherit;
+    background: #fff8e8;
+    border: 2px solid #e0c88a;
+    border-radius: 10px;
+    cursor: pointer;
+    color: #3a2a10;
+    transition: background 0.15s, border-color 0.15s;
+    line-height: 1.4;
+  }
+
+  .quiz-opt-btn:not(:disabled):hover {
+    background: #fdf0cc;
+    border-color: #c9a227;
+  }
+
+  .quiz-opt-btn:disabled { cursor: default; }
+
+  .quiz-opt-btn.correct {
+    background: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+    font-weight: bold;
+  }
+
+  .quiz-opt-btn.wrong {
+    background: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
+  }
+
+  .quiz-feedback {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 15px;
+    line-height: 1.65;
+    display: none;
+  }
+
+  .quiz-feedback.show { display: block; }
+
+  .quiz-feedback.correct-fb {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+
+  .quiz-feedback.wrong-fb {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+  }
+
+  .quiz-next-wrap {
+    text-align: center;
+    margin: 16px 0 30px;
+  }
+
+  .btn-next {
+    display: inline-block;
+    width: auto;
+    padding: 14px 40px;
+    font-size: 17px;
+  }
+
+  /* 결과 화면 */
+  .result-card {
+    background: #fffaf0;
+    border: 2px solid #c9a227;
+    border-radius: 20px;
+    padding: 32px 24px;
+    text-align: center;
+    box-shadow: 4px 4px 14px rgba(0,0,0,0.1);
+    margin: 20px 0;
+  }
+
+  .result-stars { font-size: 44px; margin-bottom: 12px; letter-spacing: 4px; }
+
+  .result-score {
+    font-size: 36px;
+    font-weight: bold;
+    color: #8b2500;
+    margin-bottom: 8px;
+  }
+
+  .result-msg {
+    font-size: 17px;
+    color: #4a3520;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  .result-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* 상단 뒤로가기 작은 버튼 */
+  .back-btn {
+    background: none;
+    border: none;
+    font-size: 15px;
+    color: #8b6914;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-family: inherit;
+  }
+  .back-btn:hover { text-decoration: underline; }
+
+  @media (max-width: 480px) {
+    .tl-title { font-size: 14px; }
+    .quiz-q-text { font-size: 16px; }
+    .quiz-opt-btn { font-size: 15px; }
+    .home-deco { font-size: 44px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== 화면 1: 시작 ===== -->
+<div id="screen-home" class="screen active">
+  <div class="home-title-wrap">
+    <div class="home-deco">👑</div>
+    <h1>단종 이야기</h1>
+    <p style="font-size:20px; color:#8b2500; margin-top:4px; font-weight:bold;">비운의 왕을 만나다</p>
+    <p class="home-subtitle">조선 6대 왕 단종의 삶을 따라가 보세요.</p>
+  </div>
+
+  <div class="home-buttons">
+    <button class="btn btn-primary" onclick="showScreen('timeline')">📜 타임라인 보기</button>
+    <button class="btn btn-secondary" onclick="startQuiz()">⚡ 바로 퀴즈 도전</button>
+  </div>
+
+  <p class="home-desc">단종은 조선 시대 가장 슬픈 이야기를 가진 왕이에요.<br>함께 알아볼까요?</p>
+</div>
+
+<!-- ===== 화면 2: 타임라인 ===== -->
+<div id="screen-timeline" class="screen">
+  <div style="max-width:700px; margin:0 auto; width:100%;">
+    <div class="timeline-back">
+      <button class="back-btn" onclick="showScreen('home')">← 처음으로</button>
+    </div>
+    <div class="timeline-header">
+      <h2>📜 단종의 생애 타임라인</h2>
+      <p style="font-size:14px; color:#8b6914; margin-top:6px;">각 카드를 클릭하면 자세한 이야기가 펼쳐져요!</p>
+    </div>
+
+    <div class="timeline-wrap" id="timeline-list"></div>
+
+    <div class="timeline-footer">
+      <button class="btn btn-primary" style="max-width:360px; margin:0 auto;" onclick="startQuiz()">✏️ 퀴즈 도전하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 화면 3: 퀴즈 ===== -->
+<div id="screen-quiz" class="screen">
+  <div class="quiz-header">
+    <div style="text-align:left; margin-bottom:4px;">
+      <button class="back-btn" onclick="showScreen('home')">← 처음으로</button>
+    </div>
+    <h2>✏️ 단종 역사 퀴즈</h2>
+    <div class="quiz-progress-wrap">
+      <div class="quiz-progress-bar-bg">
+        <div class="quiz-progress-bar" id="quiz-bar" style="width:20%"></div>
+      </div>
+      <div class="quiz-progress-text" id="quiz-progress-text">1 / 5</div>
+    </div>
+  </div>
+
+  <div id="quiz-area"></div>
+</div>
+
+<script>
+// ── 데이터 ──────────────────────────────────────────
+
+const timelineData = [
+  {
+    year: '1441년', emoji: '👶', title: '단종 탄생',
+    detail: '조선 6대 왕 단종(이름: 이홍위)이 태어났어요. 아버지는 세자(나중에 문종이 될 분)였고, 태어난 바로 다음 날 어머니가 세상을 떠나 할아버지 세종의 손에서 자랐어요.'
+  },
+  {
+    year: '1448년', emoji: '👑', title: '왕세손(왕의 손자 후계자) 책봉',
+    detail: '여덟 살에 할아버지 세종이 단종을 왕위를 이을 세손으로 정했어요. 세종은 단종을 무척 아꼈답니다.'
+  },
+  {
+    year: '1452년', emoji: '👑', title: '조선 제6대 왕 즉위',
+    detail: '아버지 문종이 갑자기 세상을 떠나자, 단종은 열두 살에 왕이 되었어요. 너무 어린 나이에 왕이 되다 보니, 나라의 일을 신하들이 대신 처리했어요.\n이것을 \'황표정사\'라고 해요 — 신하들이 인사 결정을 도장처럼 찍어주고, 왕은 그대로 따르는 상황이었죠.'
+  },
+  {
+    year: '1453년', emoji: '⚔️', title: '계유정난 — 삼촌 수양대군이 권력을 빼앗다',
+    detail: '단종의 삼촌 수양대군이 군사를 이끌고 신하 김종서 등을 죽이고 권력을 장악했어요. \'계유정난(힘으로 나라를 뒤집은 사건)\'이라 부릅니다. 이때부터 단종은 이름만 왕이고 실제 권력은 없었어요.'
+  },
+  {
+    year: '1455년', emoji: '😔', title: '왕위를 내놓다 (양위)',
+    detail: '수양대군의 압박이 계속되자 단종은 결국 옥새(왕의 도장)를 넘기고 왕자리에서 물러났어요. 수양대군이 조선의 7대 왕 세조가 되었습니다.'
+  },
+  {
+    year: '1456년', emoji: '🤝', title: '단종 복위 운동 — 사육신 사건',
+    detail: '성삼문, 박팽년 등 충성스러운 신하 6명(사육신)이 단종을 다시 왕으로 세우려 했지만, 계획이 발각되어 모두 처형되었어요. 이 사건으로 단종의 상황은 더욱 위험해졌어요.'
+  },
+  {
+    year: '1457년', emoji: '😢', title: '강원도 영월로 유배',
+    detail: '단종은 노산군(왕족 작위)으로 낮춰지고 강원도 영월 청령포로 귀양을 갔어요. 청령포는 삼면이 강으로 둘러싸인 외딴 곳이었답니다.'
+  },
+  {
+    year: '1457년', emoji: '💧', title: '단종 서거 — 17세의 나이로',
+    detail: '단종의 삼촌 금성대군이 또다시 복위 운동을 벌이다 발각되자, 세조는 단종에게 사약(죽음의 약)을 내렸어요. 단종은 17세의 꽃다운 나이에 세상을 떠났습니다.'
+  },
+  {
+    year: '1698년', emoji: '🌸', title: '사후 240년 만에 복권',
+    detail: '숙종 임금 때, 단종은 드디어 \'왕\'으로 다시 인정받았어요. 묘소는 장릉(莊陵)으로 이름 붙여졌고, 지금도 강원도 영월에 있답니다.'
+  }
+];
+
+const quizData = [
+  {
+    q: '단종이 왕이 된 나이는?',
+    opts: ['① 8세', '② 10세', '③ 12세', '④ 15세'],
+    ans: 2,
+    explain: '단종은 아버지 문종이 갑자기 돌아가시자 열두 살의 어린 나이에 왕위에 올랐어요.'
+  },
+  {
+    q: '수양대군이 신하들을 제거하고 권력을 빼앗은 사건 이름은?',
+    opts: ['① 임진왜란', '② 계유정난', '③ 병자호란', '④ 황표정사'],
+    ans: 1,
+    explain: '1453년 수양대군이 일으킨 \'계유정난\'으로 단종은 이름만 왕인 상태가 되었어요.'
+  },
+  {
+    q: '단종을 다시 왕으로 세우려 했던 충성스러운 신하 6명을 부르는 말은?',
+    opts: ['① 삼정승', '② 육조판서', '③ 사육신', '④ 팔도관찰사'],
+    ans: 2,
+    explain: '성삼문, 박팽년 등 6명의 신하가 단종 복위를 위해 목숨을 걸었어요. 이들을 \'사육신\'이라 부릅니다.'
+  },
+  {
+    q: '단종이 유배된 곳은 어디인가요?',
+    opts: ['① 제주도', '② 거제도', '③ 강화도', '④ 강원도 영월'],
+    ans: 3,
+    explain: '단종은 강원도 영월의 청령포로 유배되었어요. 삼면이 강으로 둘러싸인 외딴 곳이었답니다.'
+  },
+  {
+    q: '단종이 왕으로 다시 인정받은 것은 그가 세상을 떠난 지 몇 년 후인가요?',
+    opts: ['① 약 50년 후', '② 약 100년 후', '③ 약 240년 후', '④ 약 500년 후'],
+    ans: 2,
+    explain: '숙종 임금 때인 1698년, 단종은 사망 후 약 240년이 지나서야 왕으로 복권되었어요.'
+  }
+];
+
+// ── 화면 전환 ──────────────────────────────────────
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ── 타임라인 렌더 ──────────────────────────────────
+
+function renderTimeline() {
+  const list = document.getElementById('timeline-list');
+  list.innerHTML = '';
+  timelineData.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'tl-item';
+    div.innerHTML = `
+      <div class="tl-card">
+        <div class="tl-header" onclick="toggleTL(${i})">
+          <span class="tl-year">${item.year}</span>
+          <span class="tl-emoji">${item.emoji}</span>
+          <span class="tl-title">${item.title}</span>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-detail">
+          <div class="tl-detail-inner">${item.detail.replace(/\n/g, '<br>')}</div>
+        </div>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function toggleTL(idx) {
+  const items = document.querySelectorAll('.tl-item');
+  items[idx].classList.toggle('open');
+}
+
+// ── 퀴즈 ──────────────────────────────────────────
+
+let qIdx = 0;
+let score = 0;
+let answered = false;
+
+function startQuiz() {
+  qIdx = 0;
+  score = 0;
+  answered = false;
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const area = document.getElementById('quiz-area');
+  const total = quizData.length;
+
+  // 결과 화면
+  if (qIdx >= total) {
+    showResult();
+    return;
+  }
+
+  const q = quizData[qIdx];
+  answered = false;
+
+  // 진행바
+  const pct = Math.round(((qIdx + 1) / total) * 100);
+  document.getElementById('quiz-bar').style.width = pct + '%';
+  document.getElementById('quiz-progress-text').textContent = `${qIdx + 1} / ${total}`;
+
+  let optsHtml = q.opts.map((o, i) =>
+    `<button class="quiz-opt-btn" id="opt-${i}" onclick="checkAnswer(${i})">${o}</button>`
+  ).join('');
+
+  area.innerHTML = `
+    <div class="quiz-card">
+      <div class="quiz-q-num">문제 ${qIdx + 1}</div>
+      <div class="quiz-q-text">${q.q}</div>
+      <div class="quiz-options">${optsHtml}</div>
+      <div class="quiz-feedback" id="feedback"></div>
+    </div>
+    <div class="quiz-next-wrap" id="next-wrap" style="display:none;">
+      <button class="btn btn-primary btn-next" onclick="nextQuestion()">
+        ${qIdx + 1 < total ? '다음 문제 →' : '결과 보기 🏆'}
+      </button>
+    </div>`;
+}
+
+function checkAnswer(selected) {
+  if (answered) return;
+  answered = true;
+
+  const q = quizData[qIdx];
+  const fb = document.getElementById('feedback');
+  const btns = document.querySelectorAll('.quiz-opt-btn');
+
+  btns.forEach(b => b.disabled = true);
+  btns[q.ans].classList.add('correct');
+
+  if (selected === q.ans) {
+    score++;
+    btns[selected].classList.add('correct');
+    fb.className = 'quiz-feedback show correct-fb';
+    fb.innerHTML = `✅ <strong>정답이에요!</strong><br>${q.explain}`;
+  } else {
+    btns[selected].classList.add('wrong');
+    fb.className = 'quiz-feedback show wrong-fb';
+    fb.innerHTML = `💪 <strong>아쉽지만 괜찮아요! 정답은 ${q.ans + 1}번이에요.</strong><br>${q.explain}`;
+  }
+
+  document.getElementById('next-wrap').style.display = 'block';
+}
+
+function nextQuestion() {
+  qIdx++;
+  renderQuestion();
+}
+
+function showResult() {
+  const area = document.getElementById('quiz-area');
+  const total = quizData.length;
+
+  document.getElementById('quiz-bar').style.width = '100%';
+  document.getElementById('quiz-progress-text').textContent = `완료!`;
+
+  let stars, msg;
+  if (score === total) {
+    stars = '⭐⭐⭐';
+    msg = '역사 박사! 단종을 완벽히 이해했어요!';
+  } else if (score >= 3) {
+    stars = '⭐⭐';
+    msg = '잘했어요! 타임라인을 한 번 더 보면 완벽해질 거예요.';
+  } else {
+    stars = '⭐';
+    msg = '괜찮아요! 타임라인을 다시 읽고 도전해봐요.';
+  }
+
+  area.innerHTML = `
+    <div class="result-card">
+      <div class="result-stars">${stars}</div>
+      <div class="result-score">${score} / ${total}</div>
+      <div class="result-msg">${msg}</div>
+      <div class="result-buttons">
+        <button class="btn btn-primary" onclick="startQuiz()">🔄 다시 풀기</button>
+        <button class="btn btn-secondary" onclick="showScreen('timeline')">📜 타임라인 다시 보기</button>
+        <button class="btn btn-outline" onclick="showScreen('home')">🏠 처음으로</button>
+      </div>
+    </div>`;
+}
+
+// ── 초기화 ──────────────────────────────────────────
+renderTimeline();
+</script>
+</body>
+</html>
